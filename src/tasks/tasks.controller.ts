@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 // import { stat } from 'fs';
 import { CreateTaskDto } from 'src/dto/create-task-dto';
-// import { GetTaskFilterDto } from 'src/dto/get-task-filter-dto';
+import { GetTaskFilterDto } from 'src/dto/get-task-filter-dto';
 // import { GetTaskbyIdDto } from 'src/dto/gettask-byid-dto';
 // import { UpdatestatusById } from 'src/dto/update-statusbyid';
 // import { TaskStatusValidationPipes } from 'src/pipes/tasks-status-validation.pipes';
@@ -24,6 +24,14 @@ import { TasksService } from './tasks.service';
 @Controller('tasks')
 export class TasksController {
   constructor(private taskservices: TasksService) {}
+  @Get()
+  async getalltasks(@Query() taskfilterdto: GetTaskFilterDto) {
+    if (Object.keys(taskfilterdto).length) {
+      return await this.taskservices.gettaskwithfilter(taskfilterdto);
+    } else {
+      return await this.taskservices.getAlltasks();
+    }
+  }
   // @Get()
   // getTask(@Query() taskfilterdto: GetTaskFilterDto): Task[] {
   //   if (Object.keys(taskfilterdto).length) {

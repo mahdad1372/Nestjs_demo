@@ -9,35 +9,38 @@ import { Task } from './task.entity';
 import { CreateTaskDto } from 'src/dto/create-task-dto';
 // import { GetTaskbyIdDto } from 'src/dto/gettask-byid-dto';
 // import { UpdatestatusById } from 'src/dto/update-statusbyid';
-// import { GetTaskFilterDto } from 'src/dto/get-task-filter-dto';
-import { Repository } from 'typeorm';
+import { GetTaskFilterDto } from 'src/dto/get-task-filter-dto';
+import { getRepository, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TasksRepository } from './task.repository';
 import { from, Observable } from 'rxjs';
 import { TASKSTATUS } from './task-status.enum';
-import { finished } from 'stream';
+
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task) private taskRepository: Repository<Task>,
   ) {}
-  // getAlltasks(): Observable<Task[]> {
-  //   return from(this.TaskRepository.find());
-  // }
-  // gettaskwithfilter(filterdto: GetTaskFilterDto): Task[] {
-  //   const { status, search } = filterdto;
-  //   let tasks = this.tasks;
-  //   if (status) {
-  //     tasks = tasks.filter((task) => task.status === status);
-  //   }
-  //   if (search) {
-  //     tasks = tasks.filter(
-  //       (task) =>
-  //         task.description.includes(search) || task.title.includes(search),
-  //     );
-  //   }
-  //   return tasks;
-  // }
+  getAlltasks(): Promise<Task[]> {
+    return this.taskRepository.find({});
+  }
+
+  async gettaskwithfilter(filterdto: GetTaskFilterDto) {
+    const { status, search } = filterdto;
+    const query = this.taskRepository.createQueryBuilder('task');
+
+    if (status) {
+      await query.andWhere('task.status = :status', { status });
+    }
+    if (search) {
+      await query.andWhere(
+        '(task.title LIKE :search OR task.descripton LIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+    const tasks = query.getMany();
+    return await tasks;
+  }
   async getTaskbyId(id: number) {
     const task = await this.taskRepository.find({
       where: { id },
