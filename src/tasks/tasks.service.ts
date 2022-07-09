@@ -7,7 +7,7 @@ import {
 import { Task } from './task.entity';
 // import * as uuid from 'uuid';
 import { CreateTaskDto } from 'src/dto/create-task-dto';
-// import { GetTaskbyIdDto } from 'src/dto/gettask-byid-dto';
+import { GetTaskbyIdDto } from 'src/dto/gettask-byid-dto';
 // import { UpdatestatusById } from 'src/dto/update-statusbyid';
 import { GetTaskFilterDto } from 'src/dto/get-task-filter-dto';
 import { getRepository, Repository } from 'typeorm';
@@ -15,6 +15,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TasksRepository } from './task.repository';
 import { from, Observable } from 'rxjs';
 import { TASKSTATUS } from './task-status.enum';
+import { json } from 'stream/consumers';
 
 @Injectable()
 export class TasksService {
@@ -68,12 +69,17 @@ export class TasksService {
   //     return findtask;
   //   }
   // }
-  // deleteTaskById(gettaskbyiddto: GetTaskbyIdDto) {
-  //   const { id } = gettaskbyiddto;
-  //   const index = this.tasks.findIndex((key) => key.id === id);
-  //   this.tasks.splice(index, 1);
-  //   return 'The task has deleted sucessfully';
-  // }
+  async deleteTaskById(gettaskbyiddto: GetTaskbyIdDto) {
+    const { id } = gettaskbyiddto;
+    const deletetask = await this.taskRepository.delete(Number(id));
+    if (!deletetask.affected) {
+      throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+    }
+    return new HttpException(
+      'The task has deleted successfully',
+      HttpStatus.OK,
+    );
+  }
   // updateStatusById(updatestatusById: UpdatestatusById, status: TASKSTATUS) {
   //   const { id } = updatestatusById;
   //   const task = this.tasks.find((task) => task.id === id);
@@ -93,7 +99,7 @@ export class TasksService {
     } else {
       const task = new Task();
       task.title = title;
-      task.descripton = description;
+      task.description = description;
       task.status = TASKSTATUS.OPEN;
       await task.save();
       return task;

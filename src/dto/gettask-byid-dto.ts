@@ -1,3 +1,3 @@
 export class GetTaskbyIdDto {
-  id: number;
+  id: string;
 }
